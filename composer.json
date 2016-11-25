@@ -15,7 +15,13 @@
     }
   ],
   "require": {
+    "php": ">=5.5.0",
+    "nette/di": "2.3@dev",
+    "nette/utils": "2.3@dev",
+    "kdyby/console": "@dev",
+    "sebastian/diff": "^1.4"
   },
+  "bin": ["bin/packager", "bin/packager.php"],
   "require-dev": {
     "nette/tester": "@dev"
   },
