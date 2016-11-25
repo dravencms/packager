@@ -53,11 +53,16 @@ class Packager extends \Nette\Object
         return $this->configDir.'/'.self::CONFIG_DIR.'/'.self::INSTALLED_PACKAGES_LIST;
     }
 
+    public function getInstalledPackagesConf()
+    {
+        return Neon::decode(file_get_contents($this->getInstalledPackagesPath()));
+    }
+
     public function getInstalledPackages()
     {
-        $data = Neon::decode(file_get_contents($this->getInstalledPackagesPath()));
+        $data = $this->getInstalledPackagesConf();
 
-        if (!array_key_exists('includes', $data))
+        if (!array_key_exists('includes', $data) || is_null($data['includes']))
         {
             return [];
         }
@@ -81,10 +86,21 @@ class Packager extends \Nette\Object
 
     public function install(IPackage $package)
     {
-        //$this->generatePackageConfig($package);
-
-        //register to install list
+        $this->addPackageToInstalled($package);
         //run hooks
+    }
+
+    public function addPackageToInstalled(IPackage $package)
+    {
+        if ($this->isInstalled($package))
+        {
+            return true;
+        }
+
+        $data = $this->getInstalledPackagesConf();
+        $data['includes'][] = $package->getName().'.neon';
+
+        file_put_contents($this->getInstalledPackagesPath(), Neon::encode($data, Neon::BLOCK));
     }
 
     public function uninstall(IPackage $package, $purge = false)
