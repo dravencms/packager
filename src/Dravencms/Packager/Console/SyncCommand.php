@@ -3,6 +3,7 @@
 namespace Dravencms\Packager\Console;
 
 use App\Model\User\Repository\AclResourceRepository;
+use Dravencms\Packager\Packager;
 use Kdyby\Doctrine\EntityManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,6 +15,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class SyncCommand extends Command
 {
+    /** @var Packager */
+    private $packager;
+
+    public function __construct(Packager $packager)
+    {
+        parent::__construct();
+
+        $this->packager = $packager;
+    }
+
+
     protected function configure()
     {
         $this->setName('packager:sync')
@@ -24,6 +36,14 @@ class SyncCommand extends Command
     {
         try {
 
+            foreach ($this->packager->installAvailable() AS $package) {
+                //$output->writeln(sprintf('<info>%s : %s</info>', $action, $name));
+            }
+            
+            foreach ($this->packager->uninstallAbsent() AS $package) {
+                //$output->writeln(sprintf('<info>%s : %s</info>', $package->getName(), $name));
+            }
+            
             $output->writeLn('Module synced successfully');
             return 0; // zero return code means everything is ok
 

@@ -1,4 +1,3 @@
 - Dravencms\Packager\Console\InstallCommand
 - Dravencms\Packager\Console\UninstallCommand
-- Dravencms\Packager\Console\ListCommand
 - Dravencms\Packager\Console\SyncCommand

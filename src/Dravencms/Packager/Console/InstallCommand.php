@@ -15,7 +15,6 @@ use Symfony\Component\Console\Question\Question;
 /**
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
  */
-
 class InstallCommand extends Command
 {
     const CONFIG_ACTION_KEEP = 'k';
@@ -26,15 +25,11 @@ class InstallCommand extends Command
     /** @var Packager */
     private $packager;
 
-    /** @var Composer */
-    private $composer;
-
-    public function __construct(Packager $packager, Composer $composer)
+    public function __construct(Packager $packager)
     {
         parent::__construct();
 
         $this->packager = $packager;
-        $this->composer = $composer;
     }
 
     protected function configure()
@@ -47,11 +42,11 @@ class InstallCommand extends Command
     private function configAction(InputInterface $input, OutputInterface $output, IPackage $package)
     {
         $helper = $this->getHelper('question');
-        $question = new Question(sprintf('Configuration file %s is user modified, what now ? [k=keep(default) / d=diff / q=quit / o=overwrite]', $this->packager->getConfigPath($package)), self::CONFIG_ACTION_KEEP);
+        $question = new Question(sprintf('Configuration file %s is user modified, what now ? [k=keep(default) / d=diff / q=quit / o=overwrite]', $this->packager->getConfigPath($package)),
+            self::CONFIG_ACTION_KEEP);
         $action = $helper->ask($input, $output, $question);
 
-        switch ($action)
-        {
+        switch ($action) {
             case self::CONFIG_ACTION_DIFF:
                 $differ = new Differ;
                 $output->writeln($differ->diff('foo', 'bar'));
@@ -73,26 +68,20 @@ class InstallCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $package = $this->packager->createPackageInstance($input->getArgument('package'));
-
-        if ($this->packager->isInstalled($package))
-        {
-            $output->writeln(sprintf('<info>Package %s is already installed, reinstalling...</info>', $package->getName()));
-        }
-
-        if ($this->packager->isConfigUserModified($package))
-        {
-            $this->configAction($input, $output, $package);
-        }
-        else
-        {
-            $this->packager->generatePackageConfig($package);
-        }
-
-        $this->packager->install($package);
-        
-
         try {
+            $package = $this->packager->createPackageInstance($input->getArgument('package'));
+
+            if ($this->packager->isInstalled($package)) {
+                $output->writeln(sprintf('<info>Package %s is already installed, reinstalling...</info>', $package->getName()));
+            }
+
+            if ($this->packager->isConfigUserModified($package)) {
+                $this->configAction($input, $output, $package);
+            } else {
+                $this->packager->generatePackageConfig($package);
+            }
+
+            $this->packager->install($package);
 
             $output->writeLn('Module installed successfully');
             return 0; // zero return code means everything is ok

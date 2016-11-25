@@ -19,11 +19,13 @@ class Packager extends \Nette\Object
 
     private $configDir;
     private $composer;
+    private $script;
 
-    public function __construct($configDir, Composer $composer)
+    public function __construct($configDir, Composer $composer, Script $script)
     {
         $this->configDir = $configDir;
         $this->composer = $composer;
+        $this->script = $script;
     }
 
     public function createPackageInstance($name)
@@ -86,8 +88,9 @@ class Packager extends \Nette\Object
 
     public function install(IPackage $package)
     {
+        $this->script->runScript($package, Script::SCRIPT_PRE_INSTALL);
         $this->addPackageToInstalled($package);
-        //run hooks
+        $this->script->runScript($package, Script::SCRIPT_POST_INSTALL);
     }
 
     public function addPackageToInstalled(IPackage $package)
@@ -103,9 +106,43 @@ class Packager extends \Nette\Object
         file_put_contents($this->getInstalledPackagesPath(), Neon::encode($data, Neon::BLOCK));
     }
 
+    public function removePackageFromInstalled(IPackage $package)
+    {
+        if (!$this->isInstalled($package))
+        {
+            return true;
+        }
+
+        $data = $this->getInstalledPackagesConf();
+
+        $modified = array_flip($data['includes']);
+        // convert to array
+        foreach ($modified AS $k => &$item)
+        {
+            $item = preg_replace('/\\.[^.\\s]{3,4}$/', '', $k);
+        }
+
+        $keyArray = array_flip($modified);
+
+        unset($keyArray[$package->getName()]);
+
+        $data['includes'] = array_flip($keyArray);
+
+        file_put_contents($this->getInstalledPackagesPath(), Neon::encode($data, Neon::BLOCK));
+    }
+
     public function uninstall(IPackage $package, $purge = false)
     {
-        
+        $this->script->runScript($package, Script::SCRIPT_PRE_UNINSTALL);
+        $this->removePackageFromInstalled($package);
+
+        if ($purge)
+        {
+            unlink($this->getConfigPath($package));
+            unlink($this->getConfigSumPath($package));
+        }
+
+        $this->script->runScript($package, Script::SCRIPT_POST_UNINSTALL);
     }
 
     public function isConfigUserModified(IPackage $package)
@@ -141,5 +178,15 @@ class Packager extends \Nette\Object
 
         file_put_contents($this->getConfigPath($package), $installConfigurationNeon);
         file_put_contents($this->getConfigSumPath($package), $installConfigurationNeonSum);
+    }
+
+    public function installAvailable()
+    {
+
+    }
+
+    public function uninstallAbsent()
+    {
+
     }
 }

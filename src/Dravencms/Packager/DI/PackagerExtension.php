@@ -29,6 +29,9 @@ class PackagerExtension extends Nette\DI\CompilerExtension
         $builder->addDefinition($this->prefix('composer'))
             ->setClass('Dravencms\Packager\Composer', [$config['vendorDir']]);
 
+        $builder->addDefinition($this->prefix('script'))
+            ->setClass('Dravencms\Packager\Script', ['@container']);
+
         $this->loadCmsComponents();
         $this->loadComponents();
         $this->loadModels();
