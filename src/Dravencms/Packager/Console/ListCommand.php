@@ -12,19 +12,18 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
  */
 
-class UninstallCommand extends Command
+class ListCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('packager:uninstall')
-            ->setDescription('Uninstalls dravencms module');
+        $this->setName('packager:list')
+            ->setDescription('List dravencms module');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-
-            $output->writeLn('Module uninstalled successfully');
+            $output->writeLn('Module listed successfully');
             return 0; // zero return code means everything is ok
 
         } catch (\Exception $e) {

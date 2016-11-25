@@ -8,20 +8,26 @@ use Nette\DI\Compiler;
 use Nette\DI\Configurator;
 use Salamek\Cms\DI\CmsExtension;
 /**
- * Class FaqExtension
- * @package Dravencms\Gallery\DI
+ * Class Packagerxtension
+ * @package Dravencms\Packager\DI
  */
-class FaqExtension extends Nette\DI\CompilerExtension
+class PackagerExtension extends Nette\DI\CompilerExtension
 {
+    public $defaults = [
+        'configDir' => '%appDir%/config',
+        'vendorDir' => '%appDir%/../vendor'
+    ];
 
     public function loadConfiguration()
     {
-        $config = $this->getConfig();
         $builder = $this->getContainerBuilder();
+        $config = $this->getConfig($this->defaults);
 
+        $builder->addDefinition($this->prefix('packager'))
+            ->setClass('Dravencms\Packager\Packager', [$config['configDir']]);
 
-        $builder->addDefinition($this->prefix('faq'))
-            ->setClass('Dravencms\Faq\Faq', []);
+        $builder->addDefinition($this->prefix('composer'))
+            ->setClass('Dravencms\Packager\Composer', [$config['vendorDir']]);
 
         $this->loadCmsComponents();
         $this->loadComponents();
@@ -34,23 +40,11 @@ class FaqExtension extends Nette\DI\CompilerExtension
      * @param Configurator $config
      * @param string $extensionName
      */
-    public static function register(Configurator $config, $extensionName = 'faqExtension')
+    public static function register(Configurator $config, $extensionName = 'packagerExtension')
     {
         $config->onCompile[] = function (Configurator $config, Compiler $compiler) use ($extensionName) {
-            $compiler->addExtension($extensionName, new FaqExtension());
+            $compiler->addExtension($extensionName, new PackagerExtension());
         };
-    }
-
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getConfig(array $defaults = [], $expand = true)
-    {
-        $defaults = [
-        ];
-
-        return parent::getConfig($defaults, $expand);
     }
 
     protected function loadCmsComponents()

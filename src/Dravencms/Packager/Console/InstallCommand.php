@@ -6,10 +6,15 @@ use App\Model\Admin\Entities\Menu;
 use App\Model\Admin\Repository\MenuRepository;
 use App\Model\User\Entities\AclOperation;
 use App\Model\User\Entities\AclResource;
+use Dravencms\Packager\Composer;
+use Dravencms\Packager\IPackage;
+use Dravencms\Packager\Packager;
 use Kdyby\Doctrine\EntityManager;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\Question;
 
 /**
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
@@ -17,45 +22,78 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class InstallCommand extends Command
 {
+    const CONFIG_ACTION_KEEP = 'k';
+    const CONFIG_ACTION_DIFF = 'd';
+    const CONFIG_ACTION_QUIT = 'q';
+    const CONFIG_ACTION_OVERWRITE = 'o';
+
+    /** @var Packager */
+    private $packager;
+
+    /** @var Composer */
+    private $composer;
+
+    public function __construct(Packager $packager, Composer $composer)
+    {
+        parent::__construct();
+
+        $this->packager = $packager;
+        $this->composer = $composer;
+    }
+
     protected function configure()
     {
-        $this->setName('dravencms:faq:install')
-            ->setDescription('Installs dravencms module');
+        $this->setName('packager:install')
+            ->addArgument('package', InputArgument::REQUIRED, 'Package name')
+            ->setDescription('Installs dravencms package');
+    }
+
+    private function configAction(InputInterface $input, OutputInterface $output, IPackage $package)
+    {
+        $helper = $this->getHelper('question');
+        $question = new Question(sprintf('Configuration file %s is user modified, what now ? [k=keep(default) / d=diff / q=quit / o=overwrite]', $this->packager->getConfigPath($package)), self::CONFIG_ACTION_KEEP);
+        return $helper->ask($input, $output, $question);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        /** @var MenuRepository $adminMenuRepository */
-        $adminMenuRepository = $this->getHelper('container')->getByType('App\Model\Admin\Repository\MenuRepository');
+        $package = $this->packager->createPackageInstance($input->getArgument('package'));
 
-        /** @var EntityManager $entityManager */
-        $entityManager = $this->getHelper('container')->getByType('Kdyby\Doctrine\EntityManager');
+        if ($this->packager->isInstalled($package))
+        {
+            $output->writeln(sprintf('<info>Package %s is already installed, reinstalling...</info>', $package->getName()));
+        }
+
+        if ($this->packager->isConfigUserModified($package))
+        {
+            $action = $this->configAction($input, $output, $package);
+
+            switch ($action)
+            {
+                case self::CONFIG_ACTION_DIFF:
+                    break;
+                case self::CONFIG_ACTION_KEEP:
+                    $output->writeln('<info>Keeping old configuration file</info>');
+                    //Do nothing
+                    break;
+                case self::CONFIG_ACTION_OVERWRITE:
+                    $output->writeln('<info>Overwriting old configuration file</info>');
+                    $this->packager->generatePackageConfig($package);
+                    break;
+                case self::CONFIG_ACTION_QUIT:
+                    return 0;
+                    break;
+            }
+        }
+        else
+        {
+            $this->packager->generatePackageConfig($package);
+        }
+
+        $this->packager->install($package);
+        
 
         try {
-
-            $aclResource = new AclResource('faq', 'Faq');
-
-            $entityManager->persist($aclResource);
-
-            $aclOperation = new AclOperation($aclResource, 'edit', 'Allows editation of faq');
-            $entityManager->persist($aclOperation);
-            $aclOperation = new AclOperation($aclResource, 'delete', 'Allows deletion of faq');
-            $entityManager->persist($aclOperation);
-
-            $adminMenu = new Menu('Faq', ':Admin:Faq:Faq', 'fa-question-circle', $aclOperation);
-
-            $foundRoot = $adminMenuRepository->getOneByName('Site items');
-
-            if ($foundRoot)
-            {
-                $adminMenuRepository->getMenuRepository()->persistAsLastChildOf($adminMenu, $foundRoot);
-            }
-            else
-            {
-                $entityManager->persist($adminMenu);
-            }
-
-            $entityManager->flush();
 
             $output->writeLn('Module installed successfully');
             return 0; // zero return code means everything is ok

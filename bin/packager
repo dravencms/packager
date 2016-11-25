@@ -1,0 +1,7 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
+ */
+require('packager.php');
