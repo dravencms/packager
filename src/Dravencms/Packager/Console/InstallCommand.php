@@ -2,14 +2,10 @@
 
 namespace Dravencms\Packager\Console;
 
-use App\Model\Admin\Entities\Menu;
-use App\Model\Admin\Repository\MenuRepository;
-use App\Model\User\Entities\AclOperation;
-use App\Model\User\Entities\AclResource;
 use Dravencms\Packager\Composer;
 use Dravencms\Packager\IPackage;
 use Dravencms\Packager\Packager;
-use Kdyby\Doctrine\EntityManager;
+use SebastianBergmann\Diff\Differ;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -52,7 +48,27 @@ class InstallCommand extends Command
     {
         $helper = $this->getHelper('question');
         $question = new Question(sprintf('Configuration file %s is user modified, what now ? [k=keep(default) / d=diff / q=quit / o=overwrite]', $this->packager->getConfigPath($package)), self::CONFIG_ACTION_KEEP);
-        return $helper->ask($input, $output, $question);
+        $action = $helper->ask($input, $output, $question);
+
+        switch ($action)
+        {
+            case self::CONFIG_ACTION_DIFF:
+                $differ = new Differ;
+                $output->writeln($differ->diff('foo', 'bar'));
+                $this->configAction($input, $output, $package);
+                break;
+            case self::CONFIG_ACTION_KEEP:
+                $output->writeln('<info>Keeping old configuration file</info>');
+                //Do nothing
+                break;
+            case self::CONFIG_ACTION_OVERWRITE:
+                $output->writeln('<info>Overwriting old configuration file</info>');
+                $this->packager->generatePackageConfig($package);
+                break;
+            case self::CONFIG_ACTION_QUIT:
+                return 0;
+                break;
+        }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -66,24 +82,7 @@ class InstallCommand extends Command
 
         if ($this->packager->isConfigUserModified($package))
         {
-            $action = $this->configAction($input, $output, $package);
-
-            switch ($action)
-            {
-                case self::CONFIG_ACTION_DIFF:
-                    break;
-                case self::CONFIG_ACTION_KEEP:
-                    $output->writeln('<info>Keeping old configuration file</info>');
-                    //Do nothing
-                    break;
-                case self::CONFIG_ACTION_OVERWRITE:
-                    $output->writeln('<info>Overwriting old configuration file</info>');
-                    $this->packager->generatePackageConfig($package);
-                    break;
-                case self::CONFIG_ACTION_QUIT:
-                    return 0;
-                    break;
-            }
+            $this->configAction($input, $output, $package);
         }
         else
         {
