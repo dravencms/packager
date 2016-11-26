@@ -46,7 +46,7 @@ class UninstallCommand extends Command
 
             $this->packager->uninstall($package, $purge);
 
-            $output->writeLn('Module uninstalled successfully');
+            $output->writeLn('Package uninstalled successfully');
             return 0; // zero return code means everything is ok
 
         } catch (\Exception $e) {

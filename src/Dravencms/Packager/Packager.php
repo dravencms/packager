@@ -17,6 +17,8 @@ class Packager extends \Nette\Object
 
     const SUM_ALGORITHM = 'md5';
 
+    const PACKAGE_TYPE = 'dravencms-package';
+
     private $configDir;
     private $composer;
     private $script;
@@ -180,13 +182,43 @@ class Packager extends \Nette\Object
         file_put_contents($this->getConfigSumPath($package), $installConfigurationNeonSum);
     }
 
+    /**
+     * @return \Generator|VirtualPackage[]
+     * @throws \Exception
+     */
     public function installAvailable()
     {
+        foreach ($this->composer->getInstalled() AS $packageName => $package)
+        {
+            if ($package['type'] == self::PACKAGE_TYPE)
+            {
+                $virtualPackage = $this->createPackageInstance($packageName);
 
+                if (!$this->isInstalled($virtualPackage))
+                {
+                    $this->generatePackageConfig($virtualPackage);
+                    $this->install($virtualPackage);
+                    yield $virtualPackage;
+                }
+            }
+        }
     }
 
+    /**
+     * @return \Generator|VirtualPackage[]
+     * @throws \Exception
+     */
     public function uninstallAbsent()
     {
+        foreach($this->getInstalledPackages() AS $packageName => $packageConf)
+        {
+            if (!$this->composer->isInstalled($packageName))
+            {
+                $virtualPackage = $this->createPackageInstance($packageName);
+                $this->uninstall($virtualPackage);
 
+                yield $virtualPackage;
+            }
+        }
     }
 }

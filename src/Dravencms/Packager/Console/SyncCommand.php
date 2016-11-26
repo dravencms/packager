@@ -35,16 +35,15 @@ class SyncCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-
             foreach ($this->packager->installAvailable() AS $package) {
-                //$output->writeln(sprintf('<info>%s : %s</info>', $action, $name));
+                $output->writeln(sprintf('<info>Installing: %s</info>', $package->getName()));
             }
             
             foreach ($this->packager->uninstallAbsent() AS $package) {
-                //$output->writeln(sprintf('<info>%s : %s</info>', $package->getName(), $name));
+                $output->writeln(sprintf('<info>Uninstalling: : %s</info>', $package->getName()));
             }
             
-            $output->writeLn('Module synced successfully');
+            $output->writeLn('Packages synced successfully');
             return 0; // zero return code means everything is ok
 
         } catch (\Exception $e) {

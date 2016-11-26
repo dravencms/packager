@@ -83,7 +83,7 @@ class InstallCommand extends Command
 
             $this->packager->install($package);
 
-            $output->writeLn('Module installed successfully');
+            $output->writeLn('Package installed successfully');
             return 0; // zero return code means everything is ok
 
         } catch (\Exception $e) {

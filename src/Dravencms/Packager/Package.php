@@ -28,6 +28,12 @@ class Package implements IPackage
 
     public function getConfiguration()
     {
+        if (!array_key_exists(self::EXTRA_KEY, $this->composerFileData) || !array_key_exists(self::EXTRA_VENDOR_KEY,
+                [$this->composerFileData[self::EXTRA_KEY]]) || !array_key_exists(self::EXTRA_VENDOR_CONFIG_KEY, [$this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY]])
+        ) {
+            return [];
+        }
+
         return $this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_CONFIG_KEY];
     }
 
