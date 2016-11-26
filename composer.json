@@ -1,6 +1,6 @@
 {
   "name": "dravencms/packager",
-  "type": "library",
+  "type": "dravencms-package",
   "description": "Packager for dravencms",
   "keywords": [
     "dravencms",
