@@ -59,7 +59,13 @@ class Packager extends \Nette\Object
 
     public function getInstalledPackagesConf()
     {
-        return Neon::decode(file_get_contents($this->getInstalledPackagesPath()));
+        $data = Neon::decode(file_get_contents($this->getInstalledPackagesPath()));
+        if (is_null($data))
+        {
+            return [];
+        }
+
+        return $data;
     }
 
     public function getInstalledPackages()
