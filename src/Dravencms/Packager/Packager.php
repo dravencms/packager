@@ -129,7 +129,7 @@ class Packager extends \Nette\Object
         unset($keyArray[$package->getName()]);
 
         $includes = [];
-        foreach(array_flip($keyArray) AS $row)
+        foreach($keyArray AS $row)
         {
             $includes[] = $row;
         }
