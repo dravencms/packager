@@ -208,7 +208,7 @@ class Packager extends \Nette\Object
     {
         foreach ($this->getInstalledPackages() AS $packageName => $packageConf) {
             if (!$this->composer->isInstalled($packageName)) {
-                $virtualPackage = $this->createPackageInstance($packageName);
+                $virtualPackage =  new Package(['name'=> $packageName]);
                 $this->uninstall($virtualPackage);
 
                 yield $virtualPackage;
