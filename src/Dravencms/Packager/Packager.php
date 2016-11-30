@@ -128,7 +128,13 @@ class Packager extends \Nette\Object
 
         unset($keyArray[$package->getName()]);
 
-        $data['includes'] = array_flip($keyArray);
+        $includes = [];
+        foreach(array_flip($keyArray) AS $row)
+        {
+            $includes[] = $row;
+        }
+
+        $data['includes'] = $includes;
 
         file_put_contents($this->getInstalledPackagesPath(), Neon::encode($data, Neon::BLOCK));
     }
