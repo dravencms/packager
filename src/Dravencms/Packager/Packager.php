@@ -171,6 +171,12 @@ class Packager extends \Nette\Object
             rename($this->getConfigPath($package), $this->getConfigPath($package) . '.old');
         }
 
+        $dir = dirname($this->getConfigPath($package));
+        if (!is_dir($dir))
+        {
+            mkdir($dir, 0777, true);
+        }
+
         file_put_contents($this->getConfigPath($package), $installConfigurationNeon);
         file_put_contents($this->getConfigSumPath($package), $installConfigurationNeonSum);
     }
