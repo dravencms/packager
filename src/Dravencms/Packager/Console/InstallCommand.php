@@ -2,7 +2,6 @@
 
 namespace Dravencms\Packager\Console;
 
-use Dravencms\Packager\Composer;
 use Dravencms\Packager\IPackage;
 use Dravencms\Packager\Packager;
 use SebastianBergmann\Diff\Differ;
