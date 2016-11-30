@@ -15,6 +15,11 @@ class Package implements IPackage
 
 
     public $composerFileData = [];
+    
+    public function __construct($composerFileData)
+    {
+        $this->composerFileData = $composerFileData;
+    }
 
     public function getName()
     {

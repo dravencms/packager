@@ -2,6 +2,7 @@
 
 namespace Dravencms\Packager;
 
+use Nette\DI\Container;
 use Nette\Neon\Neon;
 
 
@@ -12,7 +13,7 @@ use Nette\Neon\Neon;
 class Packager extends \Nette\Object
 {
     const CONFIG_DIR = 'packages';
-    
+
     const INSTALLED_PACKAGES_LIST = 'packages.neon';
 
     const SUM_ALGORITHM = 'md5';
@@ -20,48 +21,48 @@ class Packager extends \Nette\Object
     const PACKAGE_TYPE = 'dravencms-package';
 
     private $configDir;
+    private $vendorDir;
     private $composer;
-    private $script;
+    private $container;
 
-    public function __construct($configDir, Composer $composer, Script $script)
+    public function __construct($configDir, $vendorDir, Composer $composer, Container $container)
     {
         $this->configDir = $configDir;
+        $this->vendorDir = $vendorDir;
         $this->composer = $composer;
-        $this->script = $script;
+        $this->container = $container;
     }
 
     public function createPackageInstance($name)
     {
-        if (!$this->composer->isInstalled($name))
-        {
-            throw new \Exception('Composer package '.$name.' is not installed');
+        if (!$this->composer->isInstalled($name)) {
+            throw new \Exception('Composer package ' . $name . ' is not installed');
         }
-        
+
         $data = $this->composer->getData($name);
 
-        return new VirtualPackage($data);
+        return new Package($data);
     }
 
     public function getConfigPath(IPackage $package)
     {
-        return $this->configDir.'/'.self::CONFIG_DIR.'/'.$package->getName().'.neon';
+        return $this->configDir . '/' . self::CONFIG_DIR . '/' . $package->getName() . '.neon';
     }
 
     public function getConfigSumPath(IPackage $package)
     {
-        return $this->configDir.'/'.self::CONFIG_DIR.'/'.$package->getName().'.'.self::SUM_ALGORITHM;
+        return $this->configDir . '/' . self::CONFIG_DIR . '/' . $package->getName() . '.' . self::SUM_ALGORITHM;
     }
-    
+
     public function getInstalledPackagesPath()
     {
-        return $this->configDir.'/'.self::CONFIG_DIR.'/'.self::INSTALLED_PACKAGES_LIST;
+        return $this->configDir . '/' . self::CONFIG_DIR . '/' . self::INSTALLED_PACKAGES_LIST;
     }
 
     public function getInstalledPackagesConf()
     {
         $data = Neon::decode(file_get_contents($this->getInstalledPackagesPath()));
-        if (is_null($data))
-        {
+        if (is_null($data)) {
             return [];
         }
 
@@ -72,15 +73,13 @@ class Packager extends \Nette\Object
     {
         $data = $this->getInstalledPackagesConf();
 
-        if (!array_key_exists('includes', $data) || is_null($data['includes']))
-        {
+        if (!array_key_exists('includes', $data) || is_null($data['includes'])) {
             return [];
         }
 
         $return = array_flip($data['includes']);
         // convert to array
-        foreach ($return AS $k => &$item)
-        {
+        foreach ($return AS $k => &$item) {
             $item = preg_replace('/\\.[^.\\s]{3,4}$/', '', $k);
         }
 
@@ -96,28 +95,24 @@ class Packager extends \Nette\Object
 
     public function install(IPackage $package)
     {
-        $this->script->runScript($package, Script::SCRIPT_PRE_INSTALL);
         $this->addPackageToInstalled($package);
-        $this->script->runScript($package, Script::SCRIPT_POST_INSTALL);
     }
 
     public function addPackageToInstalled(IPackage $package)
     {
-        if ($this->isInstalled($package))
-        {
+        if ($this->isInstalled($package)) {
             return true;
         }
 
         $data = $this->getInstalledPackagesConf();
-        $data['includes'][] = $package->getName().'.neon';
+        $data['includes'][] = $package->getName() . '.neon';
 
         file_put_contents($this->getInstalledPackagesPath(), Neon::encode($data, Neon::BLOCK));
     }
 
     public function removePackageFromInstalled(IPackage $package)
     {
-        if (!$this->isInstalled($package))
-        {
+        if (!$this->isInstalled($package)) {
             return true;
         }
 
@@ -125,8 +120,7 @@ class Packager extends \Nette\Object
 
         $modified = array_flip($data['includes']);
         // convert to array
-        foreach ($modified AS $k => &$item)
-        {
+        foreach ($modified AS $k => &$item) {
             $item = preg_replace('/\\.[^.\\s]{3,4}$/', '', $k);
         }
 
@@ -141,24 +135,18 @@ class Packager extends \Nette\Object
 
     public function uninstall(IPackage $package, $purge = false)
     {
-        $this->script->runScript($package, Script::SCRIPT_PRE_UNINSTALL);
         $this->removePackageFromInstalled($package);
 
-        if ($purge)
-        {
+        if ($purge) {
             unlink($this->getConfigPath($package));
             unlink($this->getConfigSumPath($package));
         }
-
-        $this->script->runScript($package, Script::SCRIPT_POST_UNINSTALL);
     }
 
     public function isConfigUserModified(IPackage $package)
     {
-        if (file_exists($this->getConfigPath($package)))
-        {
-            if (!file_exists($this->getConfigSumPath($package)))
-            {
+        if (file_exists($this->getConfigPath($package))) {
+            if (!file_exists($this->getConfigSumPath($package))) {
                 return true;
             }
 
@@ -179,9 +167,8 @@ class Packager extends \Nette\Object
         $installConfigurationNeon = Neon::encode($package->getConfiguration(), Neon::BLOCK);
         $installConfigurationNeonSum = hash(self::SUM_ALGORITHM, $installConfigurationNeon);
 
-        if ($this->isConfigUserModified($package))
-        {
-            rename($this->getConfigPath($package), $this->getConfigPath($package).'.old');
+        if ($this->isConfigUserModified($package)) {
+            rename($this->getConfigPath($package), $this->getConfigPath($package) . '.old');
         }
 
         file_put_contents($this->getConfigPath($package), $installConfigurationNeon);
@@ -189,19 +176,16 @@ class Packager extends \Nette\Object
     }
 
     /**
-     * @return \Generator|VirtualPackage[]
+     * @return \Generator|Package[]
      * @throws \Exception
      */
     public function installAvailable()
     {
-        foreach ($this->composer->getInstalled() AS $packageName => $package)
-        {
-            if ($package['type'] == self::PACKAGE_TYPE)
-            {
+        foreach ($this->composer->getInstalled() AS $packageName => $package) {
+            if ($package['type'] == self::PACKAGE_TYPE) {
                 $virtualPackage = $this->createPackageInstance($packageName);
 
-                if (!$this->isInstalled($virtualPackage))
-                {
+                if (!$this->isInstalled($virtualPackage)) {
                     $this->generatePackageConfig($virtualPackage);
                     $this->install($virtualPackage);
                     yield $virtualPackage;
@@ -211,15 +195,13 @@ class Packager extends \Nette\Object
     }
 
     /**
-     * @return \Generator|VirtualPackage[]
+     * @return \Generator|Package[]
      * @throws \Exception
      */
     public function uninstallAbsent()
     {
-        foreach($this->getInstalledPackages() AS $packageName => $packageConf)
-        {
-            if (!$this->composer->isInstalled($packageName))
-            {
+        foreach ($this->getInstalledPackages() AS $packageName => $packageConf) {
+            if (!$this->composer->isInstalled($packageName)) {
                 $virtualPackage = $this->createPackageInstance($packageName);
                 $this->uninstall($virtualPackage);
 

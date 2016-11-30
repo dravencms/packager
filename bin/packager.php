@@ -27,7 +27,5 @@ $configurator->setDebugMode(true);
 $configurator->enableDebugger($logDir);
 $configurator->setTempDirectory($tempDir);
 $configurator->addConfig(dirname(__DIR__) . '/config/config.neon');
-$configurator->addConfig($appDir . '/config/config.neon');
-$configurator->addConfig($appDir . '/config/config.local.neon');
 $container = $configurator->createContainer();
 $container->getService('application')->run();
