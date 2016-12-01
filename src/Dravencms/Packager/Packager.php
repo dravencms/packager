@@ -183,6 +183,11 @@ class Packager extends \Nette\Object
             mkdir($dir, 0777, true);
         }
 
+        //!FIXME hotfix for issue #1
+        $installConfigurationNeon = preg_replace_callback('/^((?:.+|)\-.+?)\"(.+?@.+?)\"$/m', function($matches){
+            return $matches[1].$matches[2];
+        }, $installConfigurationNeon);
+
         file_put_contents($this->getConfigPath($package), $installConfigurationNeon);
         file_put_contents($this->getConfigSumPath($package), $installConfigurationNeonSum);
     }
