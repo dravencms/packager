@@ -159,7 +159,7 @@ class Packager extends \Nette\Object
             $configInstallationSum = file_get_contents($this->getConfigSumPath($package));
             //We do this to be sure that SUM will not differ cos some comments or new whitespace
             $installedConfig = Neon::decode(file_get_contents($this->getConfigPath($package)));
-            $installedConfigNeon = Neon::encode($installedConfig, Neon::BLOCK);
+            $installedConfigNeon = $this->neonEncode($installedConfig);
             $installedConfigNeonSum = hash(self::SUM_ALGORITHM, $installedConfigNeon);
 
             return $configInstallationSum != $installedConfigNeonSum;
@@ -168,9 +168,23 @@ class Packager extends \Nette\Object
         return false;
     }
 
+    /**
+     * @param array $array
+     * @return mixed
+     */
+    public function neonEncode($array)
+    {
+        $neon = Neon::encode($array, Neon::BLOCK);
+
+        //!FIXME hotfix for issue #1
+        return preg_replace_callback('/^((?:.+|)\-.+?)\"(.+?@.+?)\"$/m', function($matches){
+            return $matches[1].$matches[2];
+        }, $neon);
+    }
+
     public function generatePackageConfig(IPackage $package)
     {
-        $installConfigurationNeon = Neon::encode($package->getConfiguration(), Neon::BLOCK);
+        $installConfigurationNeon = $this->neonEncode($package->getConfiguration());
         $installConfigurationNeonSum = hash(self::SUM_ALGORITHM, $installConfigurationNeon);
 
         if ($this->isConfigUserModified($package)) {
@@ -182,11 +196,6 @@ class Packager extends \Nette\Object
         {
             mkdir($dir, 0777, true);
         }
-
-        //!FIXME hotfix for issue #1
-        $installConfigurationNeon = preg_replace_callback('/^((?:.+|)\-.+?)\"(.+?@.+?)\"$/m', function($matches){
-            return $matches[1].$matches[2];
-        }, $installConfigurationNeon);
 
         file_put_contents($this->getConfigPath($package), $installConfigurationNeon);
         file_put_contents($this->getConfigSumPath($package), $installConfigurationNeonSum);

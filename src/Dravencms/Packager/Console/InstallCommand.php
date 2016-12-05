@@ -50,7 +50,7 @@ class InstallCommand extends Command
             case self::CONFIG_ACTION_DIFF:
                 $differ = new Differ;
                 $installedConfig = Neon::decode(file_get_contents($this->packager->getConfigPath($package)));
-                $output->writeln($differ->diff(Neon::encode($installedConfig, Neon::BLOCK), Neon::encode($package->getConfiguration(), Neon::BLOCK)));
+                $output->writeln($differ->diff($this->packager->neonEncode($installedConfig), $this->packager->neonEncode($package->getConfiguration()  )));
                 $this->configAction($input, $output, $package);
                 break;
             case self::CONFIG_ACTION_KEEP:
