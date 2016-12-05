@@ -4,6 +4,7 @@ namespace Dravencms\Packager\Console;
 
 use Dravencms\Packager\IPackage;
 use Dravencms\Packager\Packager;
+use Nette\Neon\Neon;
 use SebastianBergmann\Diff\Differ;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -48,7 +49,8 @@ class InstallCommand extends Command
         switch ($action) {
             case self::CONFIG_ACTION_DIFF:
                 $differ = new Differ;
-                $output->writeln($differ->diff('foo', 'bar'));
+                $installedConfig = Neon::decode(file_get_contents($this->packager->getConfigPath($package)));
+                $output->writeln($differ->diff(Neon::encode($installedConfig, Neon::BLOCK), Neon::encode($package->getConfiguration(), Neon::BLOCK)));
                 $this->configAction($input, $output, $package);
                 break;
             case self::CONFIG_ACTION_KEEP:
