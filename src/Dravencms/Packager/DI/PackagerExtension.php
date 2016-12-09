@@ -13,6 +13,9 @@ use Nette\DI\Configurator;
 class PackagerExtension extends Nette\DI\CompilerExtension
 {
     public $defaults = [
+        'appDir' => '%appDir%',
+        'wwwDir' => '%wwwDir%',
+        'tempDir' => '%tempDir%',
         'configDir' => '%appDir%/config',
         'vendorDir' => '%appDir%/../vendor'
     ];
@@ -23,7 +26,7 @@ class PackagerExtension extends Nette\DI\CompilerExtension
         $config = $this->getConfig($this->defaults);
 
         $builder->addDefinition($this->prefix('packager'))
-            ->setClass('Dravencms\Packager\Packager', [$config['configDir'], $config['vendorDir']]);
+            ->setClass('Dravencms\Packager\Packager', [$config['configDir'], $config['vendorDir'], $config['appDir'], $config['wwwDir'], $config['tempDir']]);
 
         $builder->addDefinition($this->prefix('composer'))
             ->setClass('Dravencms\Packager\Composer', [$config['vendorDir']]);

@@ -4,6 +4,7 @@ namespace Dravencms\Packager;
 
 use Nette\DI\Container;
 use Nette\Neon\Neon;
+use Nette\Utils\Finder;
 
 
 /**
@@ -22,13 +23,19 @@ class Packager extends \Nette\Object
 
     private $configDir;
     private $vendorDir;
+    private $appDir;
+    private $wwwDir;
+    private $tempDir;
     private $composer;
     private $container;
 
-    public function __construct($configDir, $vendorDir, Composer $composer, Container $container)
+    public function __construct($configDir, $vendorDir, $appDir, $wwwDir, $tempDir, Composer $composer, Container $container)
     {
         $this->configDir = $configDir;
         $this->vendorDir = $vendorDir;
+        $this->appDir = $appDir;
+        $this->wwwDir = $wwwDir;
+        $this->tempDir = $tempDir;
         $this->composer = $composer;
         $this->container = $container;
     }
@@ -93,8 +100,43 @@ class Packager extends \Nette\Object
         return array_key_exists($package->getName(), $installedPackages) && file_exists($this->getConfigPath($package));
     }
 
+    public function getPackageRoot(IPackage $package)
+    {
+        return $this->vendorDir . '/' . $package->getName();
+    }
+
+    public function expandPath($path)
+    {
+        return strtr($path, ['%appDir%' => $this->appDir, '%wwwDir%' => $this->wwwDir, '%configDir%' => $this->configDir, '%vendorDir%' => $this->vendorDir]);
+    }
+
+    public function processFiles(IPackage $package)
+    {
+        $packageRoot = $this->getPackageRoot($package);
+        foreach ($package->getFiles() AS $from => $to) {
+            $fromParts = explode('/', $from);
+            $file = array_pop($fromParts);
+
+            $searchPath = $packageRoot . '/' . implode('/', $fromParts);
+
+            foreach (Finder::findFiles($file)->from($searchPath) as $file) {
+                $fromFull = $file->getPathname();
+                $toFull = $this->expandPath($to) . str_replace($searchPath, '', $file->getPathname());
+                $toFullInfo = new \SplFileInfo($toFull);
+
+                if (!is_dir($toFullInfo->getPath()))
+                {
+                    mkdir($toFullInfo->getPath(), 0777, true);
+                }
+
+                copy($fromFull, $toFull);
+            }
+        }
+    }
+
     public function install(IPackage $package)
     {
+        $this->processFiles($package);
         $this->addPackageToInstalled($package);
     }
 
@@ -129,8 +171,7 @@ class Packager extends \Nette\Object
         unset($keyArray[$package->getName()]);
 
         $includes = [];
-        foreach($keyArray AS $row)
-        {
+        foreach ($keyArray AS $row) {
             $includes[] = $row;
         }
 
@@ -177,8 +218,8 @@ class Packager extends \Nette\Object
         $neon = Neon::encode($array, Neon::BLOCK);
 
         //!FIXME hotfix for issue #1
-        return preg_replace_callback('/^((?:.+|)\-.+?)\"(.+?@.+?)\"$/m', function($matches){
-            return $matches[1].$matches[2];
+        return preg_replace_callback('/^((?:.+|)\-.+?)\"(.+?@.+?)\"$/m', function ($matches) {
+            return $matches[1] . $matches[2];
         }, $neon);
     }
 
@@ -192,8 +233,7 @@ class Packager extends \Nette\Object
         }
 
         $dir = dirname($this->getConfigPath($package));
-        if (!is_dir($dir))
-        {
+        if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
 
@@ -228,7 +268,7 @@ class Packager extends \Nette\Object
     {
         foreach ($this->getInstalledPackages() AS $packageName => $packageConf) {
             if (!$this->composer->isInstalled($packageName)) {
-                $virtualPackage =  new Package(['name'=> $packageName]);
+                $virtualPackage = new Package(['name' => $packageName]);
                 $this->uninstall($virtualPackage);
 
                 yield $virtualPackage;

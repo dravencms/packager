@@ -12,10 +12,10 @@ class Package implements IPackage
     const EXTRA_VENDOR_KEY = 'dravencms';
     const EXTRA_VENDOR_CONFIG_KEY = 'configuration';
     const EXTRA_VENDOR_SCRIPTS_KEY = 'scripts';
-
+    const EXTRA_VENDOR_FILES_KEY = 'files';
 
     public $composerFileData = [];
-    
+
     public function __construct($composerFileData)
     {
         $this->composerFileData = $composerFileData;
@@ -39,6 +39,16 @@ class Package implements IPackage
         }
 
         return $this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_CONFIG_KEY];
+    }
+
+    public function getFiles()
+    {
+        if (!isset($this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_FILES_KEY]))
+        {
+            return [];
+        }
+
+        return $this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_FILES_KEY];
     }
 
     public function getDescription()

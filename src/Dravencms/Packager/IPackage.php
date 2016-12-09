@@ -45,4 +45,9 @@ interface IPackage
      * @return array
      */
     public function getScripts();
+
+    /**
+     * @return mixed
+     */
+    public function getFiles();
 }
