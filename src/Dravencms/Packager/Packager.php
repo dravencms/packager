@@ -113,6 +113,7 @@ class Packager extends \Nette\Object
     public function processFiles(IPackage $package)
     {
         $packageRoot = $this->getPackageRoot($package);
+        print_r($package->getFiles());
         foreach ($package->getFiles() AS $from => $to) {
             $fromParts = explode('/', $from);
             $file = array_pop($fromParts);
