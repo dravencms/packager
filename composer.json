@@ -16,7 +16,6 @@
   ],
   "require": {
     "php": ">=5.5.0",
-    "nette/di": ">=2.4",
     "nette/utils": ">=2.4",
     "kdyby/console": "@dev",
     "sebastian/diff": "^1.4"
