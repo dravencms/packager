@@ -5,14 +5,17 @@ namespace Dravencms\Packager;
 use Nette\DI\Container;
 use Nette\Neon\Neon;
 use Nette\Utils\Finder;
+use Nette\SmartObject;
 
 
 /**
  * Class Packager
  * @package Dravencms\Packager
  */
-class Packager extends \Nette\Object
+class Packager
 {
+    use SmartObject;
+    
     const CONFIG_DIR = 'packages';
 
     const INSTALLED_PACKAGES_LIST = 'packages.neon';
