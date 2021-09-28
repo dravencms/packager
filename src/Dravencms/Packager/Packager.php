@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Dravencms\Packager;
 
@@ -15,24 +15,51 @@ use Nette\SmartObject;
 class Packager
 {
     use SmartObject;
-    
+
+    /** @var string */
     const CONFIG_DIR = 'packages';
 
+    /** @var string */
     const INSTALLED_PACKAGES_LIST = 'packages.neon';
 
+    /** @var string */
     const SUM_ALGORITHM = 'md5';
 
+    /** @var string */
     const PACKAGE_TYPE = 'dravencms-package';
 
+    /** @var string */
     private $configDir;
+
+    /** @var string */
     private $vendorDir;
+
+    /** @var string */
     private $appDir;
+
+    /** @var string */
     private $wwwDir;
+
+    /** @var string */
     private $tempDir;
+
+    /** @var Composer */
     private $composer;
+
+    /** @var Container */
     private $container;
 
-    public function __construct($configDir, $vendorDir, $appDir, $wwwDir, $tempDir, Composer $composer, Container $container)
+    /**
+     * Packager constructor.
+     * @param string $configDir
+     * @param string $vendorDir
+     * @param string $appDir
+     * @param string $wwwDir
+     * @param string $tempDir
+     * @param Composer $composer
+     * @param Container $container
+     */
+    public function __construct(string $configDir, string $vendorDir, string $appDir, string $wwwDir, string $tempDir, Composer $composer, Container $container)
     {
         $this->configDir = $configDir;
         $this->vendorDir = $vendorDir;
@@ -43,7 +70,13 @@ class Packager
         $this->container = $container;
     }
 
-    public function createPackageInstance($name)
+    /**
+     * @param string $name
+     * @return Package
+     * @throws \Nette\Utils\JsonException
+     * @throws \Exception
+     */
+    public function createPackageInstance(string $name): Package
     {
         if (!$this->composer->isInstalled($name)) {
             throw new \Exception('Composer package ' . $name . ' is not installed');
@@ -54,22 +87,36 @@ class Packager
         return new Package($data);
     }
 
-    public function getConfigPath(IPackage $package)
+    /**
+     * @param IPackage $package
+     * @return string
+     */
+    public function getConfigPath(IPackage $package): string
     {
         return $this->configDir . '/' . self::CONFIG_DIR . '/' . $package->getName() . '.neon';
     }
 
-    public function getConfigSumPath(IPackage $package)
+    /**
+     * @param IPackage $package
+     * @return string
+     */
+    public function getConfigSumPath(IPackage $package): string
     {
         return $this->configDir . '/' . self::CONFIG_DIR . '/' . $package->getName() . '.' . self::SUM_ALGORITHM;
     }
 
-    public function getInstalledPackagesPath()
+    /**
+     * @return string
+     */
+    public function getInstalledPackagesPath(): string
     {
         return $this->configDir . '/' . self::CONFIG_DIR . '/' . self::INSTALLED_PACKAGES_LIST;
     }
 
-    public function getInstalledPackagesConf()
+    /**
+     * @return array
+     */
+    public function getInstalledPackagesConf(): array
     {
         $data = Neon::decode(file_get_contents($this->getInstalledPackagesPath()));
         if (is_null($data)) {
@@ -79,7 +126,10 @@ class Packager
         return $data;
     }
 
-    public function getInstalledPackages()
+    /**
+     * @return array
+     */
+    public function getInstalledPackages(): array
     {
         $data = $this->getInstalledPackagesConf();
 
@@ -96,24 +146,39 @@ class Packager
         return array_flip($return);
     }
 
-    public function isInstalled(IPackage $package)
+    /**
+     * @param IPackage $package
+     * @return bool
+     */
+    public function isInstalled(IPackage $package): bool
     {
         $installedPackages = $this->getInstalledPackages();
 
         return array_key_exists($package->getName(), $installedPackages) && file_exists($this->getConfigPath($package));
     }
 
-    public function getPackageRoot(IPackage $package)
+    /**
+     * @param IPackage $package
+     * @return string
+     */
+    public function getPackageRoot(IPackage $package): string
     {
         return $this->vendorDir . '/' . $package->getName();
     }
 
-    public function expandPath($path)
+    /**
+     * @param string $path
+     * @return string
+     */
+    public function expandPath(string $path)
     {
         return strtr($path, ['%appDir%' => $this->appDir, '%wwwDir%' => $this->wwwDir, '%configDir%' => $this->configDir, '%vendorDir%' => $this->vendorDir]);
     }
 
-    public function processFiles(IPackage $package)
+    /**
+     * @param IPackage $package
+     */
+    public function processFiles(IPackage $package): void
     {
         $packageRoot = $this->getPackageRoot($package);
         foreach ($package->getFiles() AS $from => $to) {
@@ -137,16 +202,22 @@ class Packager
         }
     }
 
-    public function install(IPackage $package)
+    /**
+     * @param IPackage $package
+     */
+    public function install(IPackage $package): void
     {
         $this->processFiles($package);
         $this->addPackageToInstalled($package);
     }
 
-    public function addPackageToInstalled(IPackage $package)
+    /**
+     * @param IPackage $package
+     */
+    public function addPackageToInstalled(IPackage $package): void
     {
         if ($this->isInstalled($package)) {
-            return true;
+            return;
         }
 
         $data = $this->getInstalledPackagesConf();
@@ -155,10 +226,13 @@ class Packager
         file_put_contents($this->getInstalledPackagesPath(), Neon::encode($data, Neon::BLOCK));
     }
 
-    public function removePackageFromInstalled(IPackage $package)
+    /**
+     * @param IPackage $package
+     */
+    public function removePackageFromInstalled(IPackage $package): void
     {
         if (!$this->isInstalled($package)) {
-            return true;
+            return;
         }
 
         $data = $this->getInstalledPackagesConf();
@@ -183,7 +257,11 @@ class Packager
         file_put_contents($this->getInstalledPackagesPath(), Neon::encode($data, Neon::BLOCK));
     }
 
-    public function uninstall(IPackage $package, $purge = false)
+    /**
+     * @param IPackage $package
+     * @param bool $purge
+     */
+    public function uninstall(IPackage $package, bool $purge = false): void
     {
         $this->removePackageFromInstalled($package);
 
@@ -193,7 +271,11 @@ class Packager
         }
     }
 
-    public function isConfigUserModified(IPackage $package)
+    /**
+     * @param IPackage $package
+     * @return bool
+     */
+    public function isConfigUserModified(IPackage $package): bool
     {
         if (file_exists($this->getConfigPath($package))) {
             if (!file_exists($this->getConfigSumPath($package))) {
@@ -213,10 +295,10 @@ class Packager
     }
 
     /**
-     * @param array $array
-     * @return mixed
+     * @param $array
+     * @return string
      */
-    public function neonEncode($array)
+    public function neonEncode($array): string
     {
         $neon = Neon::encode($array, Neon::BLOCK);
 
@@ -226,7 +308,10 @@ class Packager
         }, $neon);
     }
 
-    public function generatePackageConfig(IPackage $package)
+    /**
+     * @param IPackage $package
+     */
+    public function generatePackageConfig(IPackage $package): void
     {
         $installConfigurationNeon = $this->neonEncode($package->getConfiguration());
         $installConfigurationNeonSum = hash(self::SUM_ALGORITHM, $installConfigurationNeon);
@@ -248,7 +333,7 @@ class Packager
      * @return \Generator|Package[]
      * @throws \Exception
      */
-    public function installAvailable()
+    public function installAvailable(): \Generator
     {
         foreach ($this->composer->getInstalled() AS $packageName => $package) {
             if ($package['type'] == self::PACKAGE_TYPE) {
@@ -267,7 +352,7 @@ class Packager
      * @return \Generator|Package[]
      * @throws \Exception
      */
-    public function uninstallAbsent()
+    public function uninstallAbsent(): \Generator
     {
         foreach ($this->getInstalledPackages() AS $packageName => $packageConf) {
             if (!$this->composer->isInstalled($packageName)) {

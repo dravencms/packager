@@ -15,10 +15,10 @@
     }
   ],
   "require": {
-    "php": ">=5.5.0",
-    "nette/di": "^2.4",
-    "nette/utils": ">=2.4",
-    "kdyby/console": "@dev",
+    "php": ">=7.3.0",
+    "nette/di": "^3.0.9",
+    "nette/bootstrap": "^3.1.1",
+    "contributte/console": "^0.9.1",
     "sebastian/diff": "^1.4"
   },
   "bin": ["bin/packager", "bin/packager.php"],

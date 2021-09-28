@@ -1,16 +1,18 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Dravencms\Packager\DI;
 
-use Kdyby\Console\DI\ConsoleExtension;
-use Nette;
-use Nette\DI\Compiler;
-use Nette\DI\Configurator;
+
+use Dravencms\Packager\Composer;
+use Dravencms\Packager\Packager;
+use Dravencms\Packager\Script;
+use Nette\DI\CompilerExtension;
+
 /**
  * Class Packagerxtension
  * @package Dravencms\Packager\DI
  */
-class PackagerExtension extends Nette\DI\CompilerExtension
+class PackagerExtension extends CompilerExtension
 {
     public $defaults = [
         'appDir' => '%appDir%',
@@ -20,19 +22,20 @@ class PackagerExtension extends Nette\DI\CompilerExtension
         'vendorDir' => '%appDir%/../vendor'
     ];
 
-    public function loadConfiguration()
+    public function loadConfiguration(): void
     {
         $builder = $this->getContainerBuilder();
-        $config = $this->getConfig($this->defaults);
+        $this->setConfig($this->defaults);
+        $config = $this->getConfig();
 
         $builder->addDefinition($this->prefix('packager'))
-            ->setClass('Dravencms\Packager\Packager', [$config['configDir'], $config['vendorDir'], $config['appDir'], $config['wwwDir'], $config['tempDir']]);
+            ->setFactory(Packager::class, [$config['configDir'], $config['vendorDir'], $config['appDir'], $config['wwwDir'], $config['tempDir']]);
 
         $builder->addDefinition($this->prefix('composer'))
-            ->setClass('Dravencms\Packager\Composer', [$config['vendorDir']]);
+            ->setFactory(Composer::class, [$config['vendorDir']]);
 
         $builder->addDefinition($this->prefix('script'))
-            ->setClass('Dravencms\Packager\Script', [$config['configDir']]);
+            ->setFactory(Script::class, [$config['configDir']]);
 
         $this->loadComponents();
         $this->loadModels();
@@ -40,57 +43,44 @@ class PackagerExtension extends Nette\DI\CompilerExtension
     }
 
 
-    /**
-     * @param Configurator $config
-     * @param string $extensionName
-     */
-    public static function register(Configurator $config, $extensionName = 'packagerExtension')
-    {
-        $config->onCompile[] = function (Configurator $config, Compiler $compiler) use ($extensionName) {
-            $compiler->addExtension($extensionName, new PackagerExtension());
-        };
-    }
-
-    protected function loadComponents()
+    protected function loadComponents(): void
     {
         $builder = $this->getContainerBuilder();
         foreach ($this->loadFromFile(__DIR__ . '/components.neon') as $i => $command) {
             $cli = $builder->addDefinition($this->prefix('components.' . $i))
-                ->setInject(FALSE); // lazy injects
+                ->setAutowired(false);
             if (is_string($command)) {
-                $cli->setImplement($command);
+                $cli->setFactory($command);
             } else {
                 throw new \InvalidArgumentException;
             }
         }
     }
 
-    protected function loadModels()
+    protected function loadModels(): void
     {
         $builder = $this->getContainerBuilder();
         foreach ($this->loadFromFile(__DIR__ . '/models.neon') as $i => $command) {
             $cli = $builder->addDefinition($this->prefix('models.' . $i))
-                ->setInject(FALSE); // lazy injects
+                ->setAutowired(false);
             if (is_string($command)) {
-                $cli->setClass($command);
+                $cli->setFactory($command);
             } else {
                 throw new \InvalidArgumentException;
             }
         }
     }
 
-    protected function loadConsole()
+    protected function loadConsole(): void
     {
         $builder = $this->getContainerBuilder();
 
         foreach ($this->loadFromFile(__DIR__ . '/console.neon') as $i => $command) {
             $cli = $builder->addDefinition($this->prefix('cli.' . $i))
-                ->addTag(ConsoleExtension::TAG_COMMAND)
-                ->setInject(FALSE); // lazy injects
+                ->setAutowired(false);
 
             if (is_string($command)) {
-                $cli->setClass($command);
-
+                $cli->setFactory($command);
             } else {
                 throw new \InvalidArgumentException;
             }

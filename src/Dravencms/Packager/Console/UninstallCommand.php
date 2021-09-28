@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Dravencms\Packager\Console;
 
@@ -15,6 +15,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class UninstallCommand extends Command
 {
+    protected static $defaultName = 'packager:uninstall';
+    protected static $defaultDescription = 'Uninstalls dravencms package';
+
     /** @var Packager */
     private $packager;
 
@@ -25,15 +28,13 @@ class UninstallCommand extends Command
         $this->packager = $packager;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
-        $this->setName('packager:uninstall')
-            ->addArgument('package', InputArgument::REQUIRED, 'Package name')
-            ->addOption('purge', 'p', InputOption::VALUE_NONE, 'Purge configuration')
-            ->setDescription('Uninstalls dravencms module');
+        $this->addArgument('package', InputArgument::REQUIRED, 'Package name')
+            ->addOption('purge', 'p', InputOption::VALUE_NONE, 'Purge configuration');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $package = $this->packager->createPackageInstance($input->getArgument('package'));

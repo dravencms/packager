@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /**
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
  */
@@ -26,24 +26,22 @@ class Composer
      * @param $vendorDir
      * @throws \Exception
      */
-    public function __construct($vendorDir)
+    public function __construct(string $vendorDir)
     {
         $this->vendorDir = $vendorDir;
         $this->lockFilePath = $vendorDir.'/../'.self::COMPOSER_LOCK;
 
-        if (!file_exists($this->lockFilePath))
+        if (file_exists($this->lockFilePath))
         {
-            throw new \Exception($this->lockFilePath.' not found');
+            $this->getLockFileData();
         }
-
-        $this->getLockFileData();
     }
 
     /**
      * @return array
      * @throws \Nette\Utils\JsonException
      */
-    private function getLockFileData()
+    private function getLockFileData(): array
     {
         if (empty($this->lockFileData)) {
             $data = Json::decode(file_get_contents($this->lockFilePath), Json::FORCE_ARRAY);
@@ -55,23 +53,30 @@ class Composer
     }
 
     /**
-     * @param string $name
-     * @return mixed
+     * @param $name
+     * @return bool
+     * @throws \Nette\Utils\JsonException
      */
-    public function isInstalled($name)
+    public function isInstalled($name): bool
     {
         return array_key_exists($name, $this->getInstalled());
     }
 
     /**
      * @return array
+     * @throws \Nette\Utils\JsonException
      */
-    public function getInstalled()
+    public function getInstalled(): array
     {
         return $this->getLockFileData();
     }
 
-    public function getData($name)
+    /**
+     * @param $name
+     * @return array|mixed
+     * @throws \Nette\Utils\JsonException
+     */
+    public function getData(string $name)
     {
         if (!$this->isInstalled($name))
         {

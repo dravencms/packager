@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /**
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
  */
@@ -14,24 +14,40 @@ class Package implements IPackage
     const EXTRA_VENDOR_SCRIPTS_KEY = 'scripts';
     const EXTRA_VENDOR_FILES_KEY = 'files';
 
+    /**
+     * @var array
+     */
     public $composerFileData = [];
 
-    public function __construct($composerFileData)
+    /**
+     * Package constructor.
+     * @param array $composerFileData
+     */
+    public function __construct(array $composerFileData)
     {
         $this->composerFileData = $composerFileData;
     }
 
-    public function getName()
+    /**
+     * @return string
+     */
+    public function getName(): string
     {
         return $this->composerFileData['name'];
     }
 
-    public function getAuthors()
+    /**
+     * @return array
+     */
+    public function getAuthors(): array
     {
         return $this->composerFileData['authors'];
     }
 
-    public function getConfiguration()
+    /**
+     * @return array
+     */
+    public function getConfiguration(): array
     {
         if (!isset($this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_CONFIG_KEY]))
         {
@@ -41,6 +57,9 @@ class Package implements IPackage
         return $this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_CONFIG_KEY];
     }
 
+    /**
+     * @return array|mixed
+     */
     public function getFiles()
     {
         if (!isset($this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_FILES_KEY]))
@@ -51,12 +70,18 @@ class Package implements IPackage
         return $this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_FILES_KEY];
     }
 
-    public function getDescription()
+    /**
+     * @return string
+     */
+    public function getDescription(): string
     {
         return $this->composerFileData['description'];
     }
 
-    public function getScripts()
+    /**
+     * @return array
+     */
+    public function getScripts(): array
     {
         if (!isset($this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_SCRIPTS_KEY]))
         {
@@ -66,12 +91,18 @@ class Package implements IPackage
         return $this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_SCRIPTS_KEY];
     }
 
-    public function getKeywords()
+    /**
+     * @return array
+     */
+    public function getKeywords(): array
     {
         return $this->composerFileData['keywords'];
     }
 
-    public function getLicence()
+    /**
+     * @return string
+     */
+    public function getLicence(): string
     {
         return $this->composerFileData['licence'];
     }

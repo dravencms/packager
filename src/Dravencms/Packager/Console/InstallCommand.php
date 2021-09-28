@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Dravencms\Packager\Console;
 
@@ -17,6 +17,9 @@ use Symfony\Component\Console\Question\Question;
  */
 class InstallCommand extends Command
 {
+    protected static $defaultName = 'packager:install';
+    protected static $defaultDescription = 'Installs dravencms package';
+
     const CONFIG_ACTION_KEEP = 'k';
     const CONFIG_ACTION_DIFF = 'd';
     const CONFIG_ACTION_QUIT = 'q';
@@ -32,14 +35,12 @@ class InstallCommand extends Command
         $this->packager = $packager;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
-        $this->setName('packager:install')
-            ->addArgument('package', InputArgument::REQUIRED, 'Package name')
-            ->setDescription('Installs dravencms package');
+        $this->addArgument('package', InputArgument::REQUIRED, 'Package name');
     }
 
-    private function configAction(InputInterface $input, OutputInterface $output, IPackage $package)
+    private function configAction(InputInterface $input, OutputInterface $output, IPackage $package): void
     {
         $helper = $this->getHelper('question');
         $question = new Question(sprintf('Configuration file %s is user modified, what now ? [k=keep(default) / d=diff / q=quit / o=overwrite]', $this->packager->getConfigPath($package)),
@@ -62,12 +63,12 @@ class InstallCommand extends Command
                 $this->packager->generatePackageConfig($package);
                 break;
             case self::CONFIG_ACTION_QUIT:
-                return 0;
+                return;
                 break;
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $package = $this->packager->createPackageInstance($input->getArgument('package'));

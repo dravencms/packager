@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /**
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
  */
@@ -14,37 +14,37 @@ interface IPackage
     /**
      * @return string
      */
-    public function getName();
+    public function getName(): string;
 
     /**
      * @return string
      */
-    public function getDescription();
+    public function getDescription(): string;
 
     /**
      * @return array
      */
-    public function getKeywords();
+    public function getKeywords(): array;
 
     /**
      * @return array
      */
-    public function getLicence();
+    public function getLicence(): string;
 
     /**
      * @return array
      */
-    public function getAuthors();
+    public function getAuthors(): array;
 
     /**
      * @return array
      */
-    public function getConfiguration();
+    public function getConfiguration(): array;
 
     /**
      * @return array
      */
-    public function getScripts();
+    public function getScripts(): array;
 
     /**
      * @return mixed

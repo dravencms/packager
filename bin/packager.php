@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 /**
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
@@ -15,17 +15,17 @@ if (!file_exists($vendorDir . '/autoload.php')) {
 }
 
 require_once $vendorDir . '/autoload.php';
-$configurator = new Nette\Configurator;
 
-$configurator->addParameters(array(
+$configurator = new \Nette\Bootstrap\Configurator;
+
+
+$configurator->addParameters([
     'appDir' => $appDir,
     'wwwDir' => $wwwDir
-));
+]);
 
 $configurator->setDebugMode(true);
 
-$configurator->enableDebugger($logDir);
 $configurator->setTempDirectory($tempDir);
 $configurator->addConfig(dirname(__DIR__) . '/config/config.neon');
-$container = $configurator->createContainer();
-$container->getService('application')->run();
+$configurator->createContainer()->getByType(\Contributte\Console\Application::class)->run();

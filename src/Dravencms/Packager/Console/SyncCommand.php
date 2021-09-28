@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Dravencms\Packager\Console;
 
-use App\Model\User\Repository\AclResourceRepository;
 use Dravencms\Packager\Packager;
-use Kdyby\Doctrine\EntityManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -15,6 +13,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class SyncCommand extends Command
 {
+    protected static $defaultName = 'packager:sync';
+    protected static $defaultDescription = 'Sync dravencms module';
+
     /** @var Packager */
     private $packager;
 
@@ -26,13 +27,7 @@ class SyncCommand extends Command
     }
 
 
-    protected function configure()
-    {
-        $this->setName('packager:sync')
-            ->setDescription('Sync dravencms module');
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             foreach ($this->packager->installAvailable() AS $package) {
