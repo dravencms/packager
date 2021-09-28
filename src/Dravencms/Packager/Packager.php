@@ -40,8 +40,6 @@ class Packager
     /** @var string */
     private $wwwDir;
 
-    /** @var string */
-    private $tempDir;
 
     /** @var Composer */
     private $composer;
@@ -55,17 +53,15 @@ class Packager
      * @param string $vendorDir
      * @param string $appDir
      * @param string $wwwDir
-     * @param string $tempDir
      * @param Composer $composer
      * @param Container $container
      */
-    public function __construct(string $configDir, string $vendorDir, string $appDir, string $wwwDir, string $tempDir, Composer $composer, Container $container)
+    public function __construct(string $configDir, string $vendorDir, string $appDir, string $wwwDir, Composer $composer, Container $container)
     {
         $this->configDir = $configDir;
         $this->vendorDir = $vendorDir;
         $this->appDir = $appDir;
         $this->wwwDir = $wwwDir;
-        $this->tempDir = $tempDir;
         $this->composer = $composer;
         $this->container = $container;
     }

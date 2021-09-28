@@ -1,6 +1,6 @@
 extensions:
     console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
-    packages: Dravencms\Packager\DI\PackagerExtension
+    packages: Dravencms\Packager\DI\PackagerExtension(%appDir%, %vendorDir%, %wwwDir%)
 
 application:
     scanDirs: no

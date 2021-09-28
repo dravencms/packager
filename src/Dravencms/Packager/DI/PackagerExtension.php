@@ -8,34 +8,51 @@ use Dravencms\Packager\Packager;
 use Dravencms\Packager\Script;
 use Nette\DI\CompilerExtension;
 
+
 /**
  * Class Packagerxtension
  * @package Dravencms\Packager\DI
  */
 class PackagerExtension extends CompilerExtension
 {
-    public $defaults = [
-        'appDir' => '%appDir%',
-        'wwwDir' => '%wwwDir%',
-        'tempDir' => '%tempDir%',
-        'configDir' => '%appDir%/config',
-        'vendorDir' => '%appDir%/../vendor'
-    ];
+    /** @var string */
+    private $appDir;
+
+    /** @var string */
+    private $vendorDir;
+
+    /** @var string */
+    private $wwwDir;
+
+    /** @var string */
+    private $configDir;
+
+    /**
+     * PackagerExtension constructor.
+     * @param string|null $appDir
+     * @param string|null $vendorDir
+     * @param string|null $wwwDir
+     */
+    public function __construct(string $appDir = null, string $vendorDir = null, string $wwwDir = null)
+    {
+        $this->appDir = $appDir;
+        $this->vendorDir = $vendorDir;
+        $this->wwwDir = $wwwDir;
+        $this->configDir = $appDir.'/config';
+    }
 
     public function loadConfiguration(): void
     {
         $builder = $this->getContainerBuilder();
-        $this->setConfig($this->defaults);
-        $config = $this->getConfig();
 
         $builder->addDefinition($this->prefix('packager'))
-            ->setFactory(Packager::class, [$config['configDir'], $config['vendorDir'], $config['appDir'], $config['wwwDir'], $config['tempDir']]);
+            ->setFactory(Packager::class, [$this->configDir, $this->vendorDir, $this->appDir, $this->wwwDir]);
 
         $builder->addDefinition($this->prefix('composer'))
-            ->setFactory(Composer::class, [$config['vendorDir']]);
+            ->setFactory(Composer::class, [$this->vendorDir]);
 
         $builder->addDefinition($this->prefix('script'))
-            ->setFactory(Script::class, [$config['configDir']]);
+            ->setFactory(Script::class, [$this->configDir]);
 
         $this->loadComponents();
         $this->loadModels();
