@@ -306,20 +306,38 @@ class Packager
 
     /**
      * @param IPackage $package
+     * @return string
      */
-    public function generatePackageConfig(IPackage $package): void
+    public function getPackageInstallConfiguration(IPackage $package): string
     {
         if (is_string($package->getConfiguration())) {
             $configFilePath = $this->getPackageRoot($package).(substr($package->getConfiguration(), 0, 1 ) === "/" ? '': '/').$package->getConfiguration();
             if ($configFilePath) {
-                $installConfigurationNeon = file_get_contents($configFilePath);
-            } else {
-                $installConfigurationNeon = '';
+                return file_get_contents($configFilePath);
             }
 
         } else {
-            $installConfigurationNeon = $this->neonEncode($package->getConfiguration());
+            return $this->neonEncode($package->getConfiguration());
         }
+
+        return '';
+    }
+
+    /**
+     * @param IPackage $package
+     * @return string
+     */
+    public function getPackageInstalledConfiguration(IPackage $package): string
+    {
+        return file_get_contents($this->getConfigPath($package));
+    }
+
+    /**
+     * @param IPackage $package
+     */
+    public function generatePackageConfig(IPackage $package): void
+    {
+        $installConfigurationNeon = $this->getPackageInstallConfiguration($package);
 
         $installConfigurationNeonSum = hash(self::SUM_ALGORITHM, $installConfigurationNeon);
 

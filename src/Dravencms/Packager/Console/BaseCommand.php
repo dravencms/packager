@@ -52,8 +52,10 @@ class BaseCommand extends Command
         switch ($action) {
             case self::CONFIG_ACTION_DIFF:
                 $differ = new Differ;
-                $installedConfig = Neon::decode(file_get_contents($this->packager->getConfigPath($package)));
-                $output->writeln($differ->diff($this->packager->neonEncode($installedConfig), $this->packager->neonEncode($package->getConfiguration()  )));
+
+                $diff = $differ->diff($this->packager->getPackageInstalledConfiguration($package), $this->packager->getPackageInstallConfiguration($package));
+
+                $output->writeln($diff);
                 $this->configAction($input, $output, $package);
                 break;
             case self::CONFIG_ACTION_KEEP:
