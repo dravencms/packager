@@ -93,15 +93,6 @@ class Packager
     }
 
     /**
-     * @param IPackage $package
-     * @return string
-     */
-    public function getConfigSumPath(IPackage $package): string
-    {
-        return $this->configDir . '/' . self::CONFIG_DIR . '/' . $package->getName() . '.' . self::SUM_ALGORITHM;
-    }
-
-    /**
      * @return string
      */
     public function getInstalledPackagesPath(): string
@@ -263,7 +254,6 @@ class Packager
 
         if ($purge) {
             unlink($this->getConfigPath($package));
-            unlink($this->getConfigSumPath($package));
         }
     }
 
@@ -274,17 +264,10 @@ class Packager
     public function isConfigUserModified(IPackage $package): bool
     {
         if (file_exists($this->getConfigPath($package))) {
-            if (!file_exists($this->getConfigSumPath($package))) {
-                return true;
-            }
+            $installConfigSum = hash(self::SUM_ALGORITHM, $this->getPackageInstallConfiguration($package));
+            $installedConfigSum = hash(self::SUM_ALGORITHM, $this->getPackageInstalledConfiguration($package));
 
-            $configInstallationSum = file_get_contents($this->getConfigSumPath($package));
-            //We do this to be sure that SUM will not differ cos some comments or new whitespace
-            $installedConfig = Neon::decode(file_get_contents($this->getConfigPath($package)));
-            $installedConfigNeon = $this->neonEncode($installedConfig);
-            $installedConfigNeonSum = hash(self::SUM_ALGORITHM, $installedConfigNeon);
-
-            return $configInstallationSum != $installedConfigNeonSum;
+            return $installConfigSum != $installedConfigSum;
         }
 
         return false;
@@ -339,8 +322,6 @@ class Packager
     {
         $installConfigurationNeon = $this->getPackageInstallConfiguration($package);
 
-        $installConfigurationNeonSum = hash(self::SUM_ALGORITHM, $installConfigurationNeon);
-
         if ($this->isConfigUserModified($package)) {
             rename($this->getConfigPath($package), $this->getConfigPath($package) . '.old');
         }
@@ -351,7 +332,6 @@ class Packager
         }
 
         file_put_contents($this->getConfigPath($package), $installConfigurationNeon);
-        file_put_contents($this->getConfigSumPath($package), $installConfigurationNeonSum);
     }
 
     /**
