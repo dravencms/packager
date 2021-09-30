@@ -309,7 +309,12 @@ class Packager
      */
     public function generatePackageConfig(IPackage $package): void
     {
-        $installConfigurationNeon = $this->neonEncode($package->getConfiguration());
+        if (is_string($package->getConfiguration())) {
+            $installConfigurationNeon = file_get_contents($this->getPackageRoot($package).$package->getConfiguration());
+        } else {
+            $installConfigurationNeon = $this->neonEncode($package->getConfiguration());
+        }
+
         $installConfigurationNeonSum = hash(self::SUM_ALGORITHM, $installConfigurationNeon);
 
         if ($this->isConfigUserModified($package)) {
