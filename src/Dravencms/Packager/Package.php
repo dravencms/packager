@@ -45,13 +45,13 @@ class Package implements IPackage
     }
 
     /**
-     * @return array
+     * @return string
      */
     public function getConfiguration()
     {
         if (!isset($this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_CONFIG_KEY]))
         {
-            return [];
+            return "";
         }
 
         return $this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_CONFIG_KEY];

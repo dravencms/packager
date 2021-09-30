@@ -2,8 +2,6 @@
 
 namespace Dravencms\Packager\Console;
 
-use Dravencms\Packager\Packager;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -11,29 +9,25 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
  */
 
-class SyncCommand extends Command
+class SyncCommand extends BaseCommand
 {
     protected static $defaultName = 'packager:sync';
     protected static $defaultDescription = 'Sync dravencms module';
 
-    /** @var Packager */
-    private $packager;
-
-    public function __construct(Packager $packager)
-    {
-        parent::__construct();
-
-        $this->packager = $packager;
-    }
-
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            foreach ($this->packager->installAvailable() AS $package) {
+            foreach ($this->packager->getAvailableForInstall() AS $package) {
+                if ($this->packager->isConfigUserModified($package)) {
+                    $this->configAction($input, $output, $package);
+                } else {
+                    $this->packager->generatePackageConfig($package);
+                }
+
+                $this->packager->install($package);
                 $output->writeln(sprintf('<info>Installing: %s</info>', $package->getName()));
             }
-            
+
             foreach ($this->packager->uninstallAbsent() AS $package) {
                 $output->writeln(sprintf('<info>Uninstalling: : %s</info>', $package->getName()));
             }

@@ -311,7 +311,12 @@ class Packager
     {
         if (is_string($package->getConfiguration())) {
             $configFilePath = $this->getPackageRoot($package).(substr($package->getConfiguration(), 0, 1 ) === "/" ? '': '/').$package->getConfiguration();
-            $installConfigurationNeon = file_get_contents($configFilePath);
+            if ($configFilePath) {
+                $installConfigurationNeon = file_get_contents($configFilePath);
+            } else {
+                $installConfigurationNeon = '';
+            }
+
         } else {
             $installConfigurationNeon = $this->neonEncode($package->getConfiguration());
         }
@@ -335,15 +340,13 @@ class Packager
      * @return \Generator|Package[]
      * @throws \Exception
      */
-    public function installAvailable(): \Generator
+    public function getAvailableForInstall(): \Generator
     {
         foreach ($this->composer->getInstalled() AS $packageName => $package) {
             if ($package['type'] == self::PACKAGE_TYPE) {
                 $virtualPackage = $this->createPackageInstance($packageName);
 
                 if (!$this->isInstalled($virtualPackage)) {
-                    $this->generatePackageConfig($virtualPackage);
-                    $this->install($virtualPackage);
                     yield $virtualPackage;
                 }
             }

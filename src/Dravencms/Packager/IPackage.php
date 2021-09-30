@@ -37,7 +37,7 @@ interface IPackage
     public function getAuthors(): array;
 
     /**
-     * @return array
+     * @return string
      */
     public function getConfiguration();
 

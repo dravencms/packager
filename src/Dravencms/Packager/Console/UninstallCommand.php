@@ -2,8 +2,6 @@
 
 namespace Dravencms\Packager\Console;
 
-use Dravencms\Packager\Packager;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -13,20 +11,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Copyright (C) 2016 Adam Schubert <adam.schubert@sg1-game.net>.
  */
 
-class UninstallCommand extends Command
+class UninstallCommand extends BaseCommand
 {
     protected static $defaultName = 'packager:uninstall';
     protected static $defaultDescription = 'Uninstalls dravencms package';
 
-    /** @var Packager */
-    private $packager;
-
-    public function __construct(Packager $packager)
-    {
-        parent::__construct();
-
-        $this->packager = $packager;
-    }
 
     protected function configure(): void
     {
