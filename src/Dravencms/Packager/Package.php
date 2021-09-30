@@ -47,7 +47,7 @@ class Package implements IPackage
     /**
      * @return array
      */
-    public function getConfiguration(): array
+    public function getConfiguration()
     {
         if (!isset($this->composerFileData[self::EXTRA_KEY][self::EXTRA_VENDOR_KEY][self::EXTRA_VENDOR_CONFIG_KEY]))
         {

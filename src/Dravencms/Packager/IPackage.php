@@ -39,7 +39,7 @@ interface IPackage
     /**
      * @return array
      */
-    public function getConfiguration(): array;
+    public function getConfiguration();
 
     /**
      * @return array

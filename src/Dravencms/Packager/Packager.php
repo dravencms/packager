@@ -310,7 +310,8 @@ class Packager
     public function generatePackageConfig(IPackage $package): void
     {
         if (is_string($package->getConfiguration())) {
-            $installConfigurationNeon = file_get_contents($this->getPackageRoot($package).$package->getConfiguration());
+            $configFilePath = $this->getPackageRoot($package).(substr($package->getConfiguration(), 0, 1 ) === "/" ? '': '/').$package->getConfiguration();
+            $installConfigurationNeon = file_get_contents($configFilePath);
         } else {
             $installConfigurationNeon = $this->neonEncode($package->getConfiguration());
         }
