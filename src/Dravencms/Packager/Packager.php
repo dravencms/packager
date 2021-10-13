@@ -293,9 +293,14 @@ class Packager
      */
     public function getPackageInstallConfiguration(IPackage $package): string
     {
-        if (is_string($package->getConfiguration())) {
+        $configuration = $package->getConfiguration();
+        if (is_null($configuration)){
+            return '';
+        }
+
+        if (is_string($configuration)) {
             $configFilePath = $this->getPackageRoot($package).(substr($package->getConfiguration(), 0, 1 ) === "/" ? '': '/').$package->getConfiguration();
-            if ($configFilePath) {
+            if (is_file($configFilePath)) {
                 return file_get_contents($configFilePath);
             }
 
