@@ -343,15 +343,11 @@ class Packager
      * @return \Generator|Package[]
      * @throws \Exception
      */
-    public function getAvailableForInstall(): \Generator
+    public function getAvailableForSync(): \Generator
     {
         foreach ($this->composer->getInstalled() AS $packageName => $package) {
             if ($package['type'] == self::PACKAGE_TYPE) {
-                $virtualPackage = $this->createPackageInstance($packageName);
-
-                if (!$this->isInstalled($virtualPackage)) {
-                    yield $virtualPackage;
-                }
+                yield $this->createPackageInstance($packageName);
             }
         }
     }
