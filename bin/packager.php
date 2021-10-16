@@ -26,5 +26,5 @@ $configurator->addStaticParameters([
     'wwwDir' => $wwwDir,
 ]);
 $configurator->addConfig(dirname(__DIR__) . '/config/config.neon');
-
+$configurator->defaultExtensions['application'][1][1] = null; // disable scan dirs when Nette\Bridges\ApplicationDI\ApplicationExtension is installed
 $configurator->createContainer()->getByType(\Contributte\Console\Application::class)->run();
