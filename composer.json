@@ -19,7 +19,7 @@
     "nette/di": "^3.0.9",
     "nette/bootstrap": "^3.1.1",
     "contributte/console": "^0.9.1",
-    "sebastian/diff": "^1.4"
+    "sebastian/diff": "^5.1"
   },
   "bin": ["bin/packager", "bin/packager.php"],
   "require-dev": {
