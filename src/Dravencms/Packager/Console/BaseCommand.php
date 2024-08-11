@@ -13,6 +13,7 @@ use Dravencms\Packager\Packager;
 use Symfony\Component\Console\Command\Command;
 use Nette\Neon\Neon;
 use SebastianBergmann\Diff\Differ;
+use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -51,7 +52,7 @@ class BaseCommand extends Command
 
         switch ($action) {
             case self::CONFIG_ACTION_DIFF:
-                $differ = new Differ;
+                $differ = new Differ(new UnifiedDiffOutputBuilder());
 
                 $diff = $differ->diff($this->packager->getPackageInstalledConfiguration($package), $this->packager->getPackageInstallConfiguration($package));
 
