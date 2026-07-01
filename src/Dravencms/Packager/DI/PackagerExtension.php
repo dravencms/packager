@@ -33,7 +33,7 @@ class PackagerExtension extends CompilerExtension
      * @param string|null $vendorDir
      * @param string|null $wwwDir
      */
-    public function __construct(string $appDir = null, string $vendorDir = null, string $wwwDir = null)
+    public function __construct(?string $appDir = null, ?string $vendorDir = null, ?string $wwwDir = null)
     {
         $this->appDir = $appDir;
         $this->vendorDir = $vendorDir;
